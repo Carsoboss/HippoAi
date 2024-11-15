@@ -1,5 +1,3 @@
-// HomeScreen.tsx
-
 import React, { useRef, useEffect, useState, FC } from 'react';
 import {
   View,
@@ -17,7 +15,7 @@ import {
 import Swiper from 'react-native-swiper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { styled } from 'nativewind';
-import { useUser } from "@clerk/clerk-expo"; // Import Clerk's useUser hook
+import { useUser } from "@clerk/clerk-expo";
 
 import InputField from '@/components/InputField'; // Adjust the path as necessary
 import { fetchAPI } from '@/lib/fetch'; // Ensure the correct path
@@ -89,12 +87,11 @@ const TypeWriter: FC<TypeWriterProps> = ({
 
 const HomeScreen: FC = () => {
   const animatedValue = useRef(new Animated.Value(0)).current;
-  const textOpacity1 = useRef(new Animated.Value(1)).current;
-  const textOpacity2 = useRef(new Animated.Value(1)).current;
-
   const { user, isLoaded } = useUser(); // Access authenticated user
 
   const [noteContent, setNoteContent] = useState<string>('');
+  const [recallContent, setRecallContent] = useState<string>('');
+  const [recallResponse, setRecallResponse] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   useEffect(() => {
@@ -130,7 +127,6 @@ const HomeScreen: FC = () => {
 
   /**
    * Handles the commit note action.
-   * Sends the note content and clerkId to the /api/note endpoint.
    */
   const handleCommitNote = async () => {
     if (!isLoaded || !user) {
@@ -152,7 +148,7 @@ const HomeScreen: FC = () => {
         },
         body: JSON.stringify({
           content: noteContent,
-          clerkId: user.id, // Ensure you pass the correct Clerk ID
+          clerkId: user.id,
         }),
       });
 
@@ -164,6 +160,48 @@ const HomeScreen: FC = () => {
     } catch (error: any) {
       console.error("Error committing note:", error);
       Alert.alert("Error", error.message || "Failed to commit note.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  /**
+   * Handles the recall note action.
+   */
+  const handleRecallNote = async () => {
+    if (!isLoaded || !user) {
+      Alert.alert("Authentication Required", "Please sign in to recall notes.");
+      return;
+    }
+
+    if (recallContent.trim() === "") {
+      Alert.alert("Validation Error", "Please enter a question to recall.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setRecallResponse(null); // Clear previous response
+
+    try {
+      const apiResponse = await fetchAPI("/(api)/ask", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          clerkId: user.id,
+          query: recallContent,
+        }),
+      });
+
+      // Safely extract data from the response
+      const assistantMessage =
+        apiResponse?.data?.choices?.[0]?.message?.content || "No relevant notes found.";
+      setRecallResponse(assistantMessage);
+      Keyboard.dismiss();
+    } catch (error: any) {
+      console.error("Error recalling notes:", error);
+      Alert.alert("Error", error.message || "Failed to recall notes.");
     } finally {
       setIsSubmitting(false);
     }
@@ -212,12 +250,11 @@ const HomeScreen: FC = () => {
           </ScrollView>
         </KeyboardAvoidingView>
 
-        {/* Commit Button */}
         <TouchableOpacity
           className={`bg-white py-5 px-6 rounded-full self-center mb-20 ${isSubmitting ? 'opacity-50' : 'opacity-100'}`}
-          onPress={handleCommitNote} // Updated onPress handler
+          onPress={handleCommitNote}
           activeOpacity={0.7}
-          disabled={isSubmitting} // Disable button while submitting
+          disabled={isSubmitting}
         >
           {isSubmitting ? (
             <ActivityIndicator size="small" color="#0072ff" />
@@ -255,24 +292,28 @@ const HomeScreen: FC = () => {
                   label="Recall"
                   placeholder="Ask about something you previously stored"
                   icon={icons.person}
-                  value="" // You can manage recall input state similarly
-                  onChangeText={() => {}}
+                  value={recallContent}
+                  onChangeText={setRecallContent}
                 />
               </View>
+
+              {isSubmitting && (
+                <ActivityIndicator size="large" color="#fff" className="my-4" />
+              )}
+              {recallResponse && (
+                <View className="w-5/6 mt-4 bg-white p-4 rounded-lg">
+                  <Text className="text-lg text-gray-700">{recallResponse}</Text>
+                </View>
+              )}
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
 
         <TouchableOpacity
-          className="bg-white py-5 px-6 rounded-full self-center mb-20"
-          onPress={() => {
-            Animated.timing(textOpacity2, {
-              toValue: 0,
-              duration: 1000,
-              useNativeDriver: true,
-            }).start();
-          }}
+          className={`bg-white py-5 px-6 rounded-full self-center mb-20 ${isSubmitting ? 'opacity-50' : 'opacity-100'}`}
+          onPress={handleRecallNote}
           activeOpacity={0.7}
+          disabled={isSubmitting}
         >
           <Text className="text-2xl font-bold text-purple-500">Recall</Text>
         </TouchableOpacity>
