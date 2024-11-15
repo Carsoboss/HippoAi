@@ -87,7 +87,7 @@ export async function POST(request: Request) {
       filename: "note.txt",
       contentType: "text/plain",
     });
-    form.append("purpose", "assistants"); // Use the purpose 'assistants'
+    form.append("purpose", "user_data");
 
     log("Uploading file to OpenAI's Files API...");
 

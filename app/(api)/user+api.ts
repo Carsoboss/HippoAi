@@ -33,12 +33,12 @@ export async function POST(request: Request) {
     const assistantResponse = await axios.post(
       "https://api.openai.com/v1/assistants",
       {
-        model: "gpt-4o",
+        model: "gpt-01-mini",
         name: `${name}'s Assistant`,
         instructions: `
           You are a personal notes assistant for ${name}.
           - Help ${name} remember their notes.
-          - Retrieve relevant notes based on queries like "What books do I want to read?".
+          - Retrieve relevant notes based on the users queries".
           - Provide explanations or insights from stored notes.
         `,
         tools: [{ type: "file_search" }],
