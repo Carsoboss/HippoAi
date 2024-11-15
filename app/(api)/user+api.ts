@@ -6,9 +6,13 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY!;
 
 export async function POST(request: Request) {
   try {
+    // Initialize the Neon database connection
     const sql = neon(`${process.env.DATABASE_URL}`);
+    
+    // Parse the incoming JSON request
     const { name, email, clerkId } = await request.json();
 
+    // Validate required fields
     if (!name || !email || !clerkId) {
       return new Response(
         JSON.stringify({ error: "Missing required fields" }),
@@ -16,7 +20,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check if user already exists
+    // Check if the user already exists based on clerk_id
     const existingUser = await sql`
       SELECT * FROM users WHERE clerk_id = ${clerkId};
     `;
@@ -43,13 +47,13 @@ export async function POST(request: Request) {
           - Retrieve relevant notes based on queries like "What books do I want to read?".
           - Provide explanations or insights from stored notes.
         `,
-        tools: [{ type: "code_interpreter" }],
+        tools: [{ type: "file_search" }],
       },
       {
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${OPENAI_API_KEY}`,
-          "OpenAI-Beta": "assistants=v2",
+          "OpenAI-Beta": "assistants=v2", // Use only the assistants beta flag
         },
       }
     );
@@ -57,26 +61,49 @@ export async function POST(request: Request) {
     const assistantData = assistantResponse.data;
     const assistantId = assistantData.id;
 
-    // Generate a CUID for the new user
-    const userId = cuid(); // This will generate a unique CUID
+    // Step 2: Create a vector store via OpenAI API
+    const vectorStoreResponse = await axios.post(
+      "https://api.openai.com/v1/vector_stores",
+      {
+        name: `${name}'s Vector Store`,
+        // Optionally, add other fields like file_ids, chunking_strategy, metadata, etc.
+        // Example:
+        // file_ids: ["file_123", "file_456"],
+        // metadata: { project: "notes_app" },
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${OPENAI_API_KEY}`,
+          "OpenAI-Beta": "assistants=v2", // Use the same assistants beta flag
+        },
+      }
+    );
 
-    // Step 2: Save user to the database
+    const vectorStoreData = vectorStoreResponse.data;
+    const vectorStoreId = vectorStoreData.id;
+
+    // Step 3: Save the new user to the database with snake_case columns
+    const userId = cuid(); // Unique CUID for user
+
     const response = await sql`
       INSERT INTO users (
         id,
         name, 
         email, 
         clerk_id, 
-        assistantId
+        assistant_id,
+        vector_store_id
       )
       VALUES (
         ${userId},
         ${name}, 
         ${email}, 
         ${clerkId}, 
-        ${assistantId}
+        ${assistantId},
+        ${vectorStoreId}
       )
-      RETURNING id, name, email, assistantId;
+      RETURNING id, name, email, clerk_id, assistant_id, vector_store_id, created_at, updated_at;
     `;
 
     return new Response(
@@ -84,6 +111,7 @@ export async function POST(request: Request) {
       { status: 201 }
     );
   } catch (error: unknown) {
+    // Handle Axios errors (e.g., from OpenAI API)
     if (axios.isAxiosError(error)) {
       console.error("OpenAI API Error:", error.response?.data || error.message);
       return new Response(
@@ -94,6 +122,7 @@ export async function POST(request: Request) {
       );
     }
 
+    // Handle other unknown errors
     console.error("Unknown Error:", error);
     return new Response(
       JSON.stringify({ error: "An unexpected error occurred." }),

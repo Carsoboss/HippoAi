@@ -4,17 +4,24 @@ import React, { useRef, useEffect, useState, FC } from 'react';
 import {
   View,
   Text,
-  TextInput,
   Animated,
   TouchableOpacity,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  ActivityIndicator,
+  Alert,
+  Keyboard,
 } from 'react-native';
 import Swiper from 'react-native-swiper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { styled } from 'nativewind';
+import { useUser } from "@clerk/clerk-expo"; // Import Clerk's useUser hook
+
+import InputField from '@/components/InputField'; // Adjust the path as necessary
+import { fetchAPI } from '@/lib/fetch'; // Ensure the correct path
+import { icons } from '@/constants';
 
 const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
 const StyledLinearGradient = styled(AnimatedLinearGradient);
@@ -85,6 +92,11 @@ const HomeScreen: FC = () => {
   const textOpacity1 = useRef(new Animated.Value(1)).current;
   const textOpacity2 = useRef(new Animated.Value(1)).current;
 
+  const { user, isLoaded } = useUser(); // Access authenticated user
+
+  const [noteContent, setNoteContent] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
   useEffect(() => {
     Animated.loop(
       Animated.timing(animatedValue, {
@@ -115,6 +127,47 @@ const HomeScreen: FC = () => {
     'Show my tasks for today',
     'Retrieve my notes',
   ];
+
+  /**
+   * Handles the commit note action.
+   * Sends the note content and clerkId to the /api/note endpoint.
+   */
+  const handleCommitNote = async () => {
+    if (!isLoaded || !user) {
+      Alert.alert("Authentication Required", "Please sign in to add notes.");
+      return;
+    }
+
+    if (noteContent.trim() === "") {
+      Alert.alert("Validation Error", "Note content cannot be empty.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const apiResponse = await fetchAPI("/(api)/note", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          content: noteContent,
+          clerkId: user.id, // Ensure you pass the correct Clerk ID
+        }),
+      });
+
+      if (apiResponse.data) {
+        Alert.alert("Success", "Note committed successfully!");
+        setNoteContent('');
+        Keyboard.dismiss();
+      }
+    } catch (error: any) {
+      console.error("Error committing note:", error);
+      Alert.alert("Error", error.message || "Failed to commit note.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <Swiper
@@ -147,31 +200,30 @@ const HomeScreen: FC = () => {
               </View>
 
               <View className="w-5/6 pt-8">
-                <TextInput
-                  className="text-white text-xl p-4 bg-transparent rounded-lg border border-white"
+                <InputField
+                  label="Note"
                   placeholder="Enter something you want to remember"
-                  placeholderTextColor="rgba(255,255,255,0.7)"
-                  multiline={true}
-                  style={[styles.textInput, { textAlign: 'center' }]} // Added `textAlign: 'center'`
-                  scrollEnabled={true}
-                  textAlignVertical="top"
+                  icon={icons.person}
+                  value={noteContent}
+                  onChangeText={setNoteContent}
                 />
               </View>
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
+
+        {/* Commit Button */}
         <TouchableOpacity
-          className="bg-white py-5 px-6 rounded-full self-center mb-20"
-          onPress={() => {
-            Animated.timing(textOpacity1, {
-              toValue: 0,
-              duration: 1000,
-              useNativeDriver: true,
-            }).start();
-          }}
+          className={`bg-white py-5 px-6 rounded-full self-center mb-20 ${isSubmitting ? 'opacity-50' : 'opacity-100'}`}
+          onPress={handleCommitNote} // Updated onPress handler
           activeOpacity={0.7}
+          disabled={isSubmitting} // Disable button while submitting
         >
-          <Text className="text-2xl font-bold text-blue-500">Commit</Text>
+          {isSubmitting ? (
+            <ActivityIndicator size="small" color="#0072ff" />
+          ) : (
+            <Text className="text-2xl font-bold text-blue-500">Commit</Text>
+          )}
         </TouchableOpacity>
       </StyledLinearGradient>
 
@@ -199,19 +251,18 @@ const HomeScreen: FC = () => {
               </View>
 
               <View className="w-5/6 pt-8">
-                <TextInput
-                  className="text-white text-xl p-4 bg-transparent rounded-lg border border-white"
+                <InputField
+                  label="Recall"
                   placeholder="Ask about something you previously stored"
-                  placeholderTextColor="rgba(255,255,255,0.7)"
-                  multiline={true}
-                  style={[styles.textInput, { textAlign: 'center' }]} // Added `textAlign: 'center'`
-                  scrollEnabled={true}
-                  textAlignVertical="top"
+                  icon={icons.person}
+                  value="" // You can manage recall input state similarly
+                  onChangeText={() => {}}
                 />
               </View>
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
+
         <TouchableOpacity
           className="bg-white py-5 px-6 rounded-full self-center mb-20"
           onPress={() => {

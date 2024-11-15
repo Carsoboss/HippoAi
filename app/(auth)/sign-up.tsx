@@ -76,7 +76,10 @@ const SignUp = () => {
           }),
         });
 
-        const { userId } = apiResponse.data;
+        const { data } = apiResponse; // ✅ Directly use the parsed JSON
+
+        // If you need to use userId or other data, extract them here
+        // const userId = data.id;
 
         await setActive({ session: completeSignUp.createdSessionId });
         setVerification({ state: "default", error: "", code: "" });
