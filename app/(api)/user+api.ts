@@ -70,7 +70,7 @@ export async function POST(request: Request) {
     
     **Avoid Unnecessary References:**
     
-    - Do not mention the sources, pages, or any metadata where the notes came from.
+    - NEVER mention the sources, pages, or any metadata where the notes came from.
     - Focus on the content of the notes themselves.
     
     **Focus on Helpfulness:**
