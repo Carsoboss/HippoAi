@@ -168,44 +168,50 @@ const HomeScreen: FC = () => {
   /**
    * Handles the recall note action.
    */
-  const handleRecallNote = async () => {
-    if (!isLoaded || !user) {
-      Alert.alert("Authentication Required", "Please sign in to recall notes.");
-      return;
-    }
+/**
+ * Handles the recall note action.
+ */
+const handleRecallNote = async () => {
+  if (!isLoaded || !user) {
+    Alert.alert("Authentication Required", "Please sign in to recall notes.");
+    return;
+  }
 
-    if (recallContent.trim() === "") {
-      Alert.alert("Validation Error", "Please enter a question to recall.");
-      return;
-    }
+  if (recallContent.trim() === "") {
+    Alert.alert("Validation Error", "Please enter a question to recall.");
+    return;
+  }
 
-    setIsSubmitting(true);
-    setRecallResponse(null); // Clear previous response
+  setIsSubmitting(true);
+  setRecallResponse(null); // Clear previous response
 
-    try {
-      const apiResponse = await fetchAPI("/(api)/ask", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          clerkId: user.id,
-          query: recallContent,
-        }),
-      });
+  try {
+    const apiResponse = await fetchAPI("/(api)/ask", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        clerkId: user.id,
+        question: recallContent, // Corrected key
+      }),
+    });
 
-      // Safely extract data from the response
-      const assistantMessage =
-        apiResponse?.data?.choices?.[0]?.message?.content || "No relevant notes found.";
-      setRecallResponse(assistantMessage);
-      Keyboard.dismiss();
-    } catch (error: any) {
-      console.error("Error recalling notes:", error);
-      Alert.alert("Error", error.message || "Failed to recall notes.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    // Extract and display the assistant's response
+    const assistantMessage = apiResponse?.data || "No relevant notes found.";
+    setRecallResponse(assistantMessage); // Set the assistant's message
+    Keyboard.dismiss();
+  } catch (error: any) {
+    console.error("Error recalling notes:", error);
+    Alert.alert(
+      "Error",
+      error.response?.data?.error || error.message || "Failed to recall notes."
+    );
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
 
   return (
     <Swiper
@@ -301,8 +307,10 @@ const HomeScreen: FC = () => {
                 <ActivityIndicator size="large" color="#fff" className="my-4" />
               )}
               {recallResponse && (
-                <View className="w-5/6 mt-4 bg-white p-4 rounded-lg">
-                  <Text className="text-lg text-gray-700">{recallResponse}</Text>
+                <View className={`w-5/6 mt-4 p-4 rounded-lg ${recallResponse.includes("No relevant notes") ? "bg-red-100" : "bg-white"}`}>
+                  <Text className={`text-lg ${recallResponse.includes("No relevant notes") ? "text-red-500" : "text-gray-700"}`}>
+                    {recallResponse}
+                  </Text>
                 </View>
               )}
             </View>
