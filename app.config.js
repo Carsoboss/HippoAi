@@ -4,6 +4,7 @@ export default {
   expo: {
     name: "Hippo",
     slug: "Hippo",
+    descrption: "Alpha version of HippoAI application.",
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/images/icon.png",
