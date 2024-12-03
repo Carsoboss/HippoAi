@@ -1,5 +1,3 @@
-// RecallPage.tsx
-
 import React, { useState, useCallback } from 'react';
 import {
   View,
@@ -9,18 +7,21 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   Keyboard,
+  Alert,
 } from 'react-native';
-import ChatBox from '@/components/ChatBox';
-import { useUser } from '@clerk/clerk-expo';
-import { fetchAPI } from '@/lib/fetch';
+import ChatBox from '@/components/ChatBox'; // Adjust import if needed
+import { useUser } from '@clerk/clerk-expo'; // Adjust import if needed
+import { fetchAPI } from '@/lib/fetch'; // Adjust import if needed
 
 const RecallPage: React.FC = React.memo(() => {
   const { user, isLoaded } = useUser();
   const [recallContent, setRecallContent] = useState<string>('');
   const [recallResponse, setRecallResponse] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
+  // New state to track input focus
+  const [isInputFocused, setIsInputFocused] = useState<boolean>(false);
 
   const handleRecallNote = useCallback(async () => {
     if (!isLoaded || !user) {
@@ -67,6 +68,7 @@ const RecallPage: React.FC = React.memo(() => {
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={{ flex: 1 }}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20} // Adjust if necessary
     >
       <ScrollView
         contentContainerStyle={{ flexGrow: 1 }}
@@ -84,12 +86,16 @@ const RecallPage: React.FC = React.memo(() => {
           </View>
 
           {/* Content */}
-          <View className="flex-1 justify-center items-center w-full px-5">
+          <View
+            className={`flex-1 items-center w-full px-5 ${
+              recallResponse && !isInputFocused ? '' : 'justify-center'
+            }`}
+          >
             {isSubmitting ? (
               <ActivityIndicator size="large" color="#fff" className="my-4" />
             ) : (
               <>
-                {recallResponse && (
+                {!isInputFocused && recallResponse && (
                   <View
                     className={`w-full mt-4 p-4 rounded-lg ${
                       recallResponse.includes('No relevant notes')
@@ -109,14 +115,22 @@ const RecallPage: React.FC = React.memo(() => {
                   </View>
                 )}
 
-                <View className="w-full pt-8">
+                {/* Input Box */}
+                <View
+                  className={`w-full pt-8 ${
+                    recallResponse && !isInputFocused ? 'mt-4' : ''
+                  }`}
+                >
                   <ChatBox
                     placeholder="Type your question here..."
                     placeholderTextColor="#555"
                     value={recallContent}
                     onChangeText={setRecallContent}
-                    className="h-48"
+                    className="h-44"
                     inputStyle="text-base"
+                    // Add onFocus and onBlur handlers
+                    onFocus={() => setIsInputFocused(true)}
+                    onBlur={() => setIsInputFocused(false)}
                   />
                 </View>
               </>

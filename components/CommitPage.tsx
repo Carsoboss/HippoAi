@@ -100,7 +100,7 @@ const CommitPage: React.FC = React.memo(() => {
                     placeholderTextColor="#555"
                     value={noteContent}
                     onChangeText={setNoteContent}
-                    className="h-48"
+                    className="h-44"
                     inputStyle="text-base"
                   />
                 </View>

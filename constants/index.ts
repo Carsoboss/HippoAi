@@ -72,23 +72,23 @@ export const icons = {
 export const onboarding = [
     {
         id: 1,
-        title: "Reinvent Your Notes with Hippo AI",
+        title: "Commit Anything",
         description:
-            "Commit your thoughts like never before with Hippo's powerful memory.",
+            "Imagine you have a second brain except this one's better.",
         image: images.onboarding1,
     },
     {
         id: 2,
-        title: "Memory That Works Like Yours",
+        title: "Recall Naturally",
         description:
-            "Recall notes naturally, just like your own memory.",
+            "Your ideas are awesome you just forget them.",
         image: images.onboarding2,
     },
     {
         id: 3,
-        title: "Organize Your Thoughts Today",
+        title: "Join Now",
         description:
-            "Start your journey with Hippo and keep your thoughts organized.",
+            "Trust us you don't want to miss this.",
         image: images.onboarding3,
     },
 ];
