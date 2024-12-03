@@ -50,7 +50,10 @@ const RecallPage: React.FC = React.memo(() => {
         }),
       });
 
-      const assistantMessage = apiResponse?.data || 'No relevant notes found.';
+      let assistantMessage = apiResponse?.data || 'No relevant notes found.';
+      // Remove the specific text `4:0†note.txt` along with one character before and after
+      assistantMessage = assistantMessage.replace(/.\s*4:0†note\.txt\s*./g, '').trim();
+
       setRecallResponse(assistantMessage);
       setRecallContent('');
     } catch (error: any) {
