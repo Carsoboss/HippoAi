@@ -33,7 +33,7 @@ export default {
       [
         "expo-router",
         {
-          origin: "https://uber.dev/"
+          origin: "https://hippoai.me"
         }
       ]
     ],
