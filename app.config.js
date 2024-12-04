@@ -4,7 +4,7 @@ export default {
   expo: {
     name: "Hippo",
     slug: "Hippo",
-    descrption: "Alpha version of HippoAI application.",
+    description: "Alpha version of HippoAI application.",
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/images/icon.png",
@@ -41,7 +41,10 @@ export default {
       typedRoutes: true
     },
     extra: {
-      openaiApiKey: process.env.OPENAI_API_KEY // Loaded from .env
+      openaiApiKey: process.env.OPENAI_API_KEY, // Loaded from .env
+      eas: {
+        projectId: "67a383cc-2444-43a5-9785-2d6b000200ac" // Added Project ID
+      }
     }
   }
 };
