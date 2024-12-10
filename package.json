@@ -11,6 +11,9 @@
     "test": "jest --watchAll",
     "lint": "expo lint"
   },
+  "engines": {
+    "node": "20.x"
+  },
   "jest": {
     "preset": "jest-expo"
   },
@@ -60,7 +63,8 @@
     "react-native-web": "~0.19.13",
     "react-native-webview": "^13.12.2",
     "three": "^0.166.0",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "expo-dev-client": "~5.0.5"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
