@@ -44,8 +44,8 @@ export default {
         "@sentry/react-native/expo",
         {
           // Organization slug and project name can be hardcoded or pulled from env
-          organization: process.env.SENTRY_ORG || "your_sentry_org_slug",
-          project: process.env.SENTRY_PROJECT || "your_sentry_project_name",
+          organization: process.env.SENTRY_ORG || "hippo-o0",
+          project: process.env.SENTRY_PROJECT || "hippo",
           // If you host Sentry yourself, update this URL accordingly
           url: "https://sentry.io/"
         }
