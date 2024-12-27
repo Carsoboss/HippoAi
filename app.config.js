@@ -32,10 +32,22 @@ export default {
       favicon: "./assets/images/favicon.png"
     },
     plugins: [
+      // Existing plugin for Expo Router
       [
         "expo-router",
         {
-          origin: "https://hippoai.me" // Base production URL for web
+          origin: "https://hippoai.me"
+        }
+      ],
+      // Add Sentry plugin here
+      [
+        "@sentry/react-native/expo",
+        {
+          // Organization slug and project name can be hardcoded or pulled from env
+          organization: process.env.SENTRY_ORG || "your_sentry_org_slug",
+          project: process.env.SENTRY_PROJECT || "your_sentry_project_name",
+          // If you host Sentry yourself, update this URL accordingly
+          url: "https://sentry.io/"
         }
       ]
     ],
@@ -44,13 +56,17 @@ export default {
       newArchEnabled: true // Explicitly enable new architecture
     },
     extra: {
-      openaiApiKey: process.env.OPENAI_API_KEY, // Loaded from .env
-      clerkRedirectUrl: "myapp://oauth-native-callback", // Mobile redirect URI for OAuth
-      clerkFrontendApi: "https://clerk.hippoai.me", // Clerk Frontend API
-      productionUrl: "https://hippoai.me", // Base production URL
+      // Any keys you already have
+      openaiApiKey: process.env.OPENAI_API_KEY,
+      clerkRedirectUrl: "myapp://oauth-native-callback",
+      clerkFrontendApi: "https://clerk.hippoai.me",
+      productionUrl: "https://hippoai.me",
       eas: {
-        projectId: "67a383cc-2444-43a5-9785-2d6b000200ac" // Expo Application Services Project ID
-      }
+        projectId: "67a383cc-2444-43a5-9785-2d6b000200ac"
+      },
+
+      // Optionally, include your Sentry DSN here if you want to access it via process.env
+      sentryDsn: process.env.SENTRY_DSN
     }
   }
 };

@@ -33,6 +33,7 @@
     "dotenv": "^16.4.5",
     "expo": "~52.0.14",
     "expo-constants": "~17.0.3",
+    "expo-dev-client": "~5.0.5",
     "expo-font": "~13.0.1",
     "expo-gl": "^15.0.2",
     "expo-linear-gradient": "~14.0.1",
@@ -62,9 +63,10 @@
     "react-native-swiper": "^1.6.0",
     "react-native-web": "~0.19.13",
     "react-native-webview": "^13.12.2",
+    "sentry-expo": "^7.2.0",
     "three": "^0.166.0",
     "zod": "^3.23.8",
-    "expo-dev-client": "~5.0.5"
+    "@sentry/react-native": "~6.3.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
