@@ -64,7 +64,7 @@ const SignUp = () => {
 
       if (completeSignUp.status === "complete") {
         // Send user data to the backend
-        const apiResponse = await fetchAPI("http://hippoai.me/user", {
+        const apiResponse = await fetchAPI("https://www.hippoai.me/(api)/user", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

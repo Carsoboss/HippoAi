@@ -39,7 +39,7 @@ const RecallPage: React.FC = React.memo(() => {
     Keyboard.dismiss();
 
     try {
-      const apiResponse = await fetchAPI('https://hippoai.me/ask', {
+      const apiResponse = await fetchAPI('https://www.hippoai.me/(api)/ask', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
