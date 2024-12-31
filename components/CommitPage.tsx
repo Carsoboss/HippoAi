@@ -36,7 +36,7 @@ const CommitPage: React.FC = React.memo(() => {
     Keyboard.dismiss();
 
     try {
-      const apiResponse = await fetchAPI('/(api)/note', {
+      const apiResponse = await fetchAPI('https://hippoai.me/note', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
