@@ -4,14 +4,24 @@ import { View, Text, Image } from 'react-native';
 import CustomButton from '@/components/CustomButton';
 import { icons } from '@/constants';
 import { useOAuth, useUser } from '@clerk/clerk-expo';
-import { googleOAuth } from '@/lib/auth';
 import { router } from 'expo-router';
 import { fetchAPI } from '@/lib/fetch';
 import ReactNativeModal from 'react-native-modal';
 import LoadingSpinner from './loadingSpinner';
 
+// 1. Import expo-linking
+import * as Linking from 'expo-linking';
+
 const OAuth: React.FC = () => {
-  const { startOAuthFlow } = useOAuth({ strategy: 'oauth_google' });
+  // 2. Create a redirectUrl from your custom scheme
+  const redirectUrl = Linking.createURL('/oauth-native-callback');
+
+  // 3. Pass redirectUrl into useOAuth
+  const { startOAuthFlow } = useOAuth({
+    strategy: 'oauth_google',
+    redirectUrl,
+  });
+
   const { isLoaded, user } = useUser();
   const [oauthSuccess, setOauthSuccess] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -19,16 +29,19 @@ const OAuth: React.FC = () => {
   const handleGoogleSignIn = useCallback(async () => {
     try {
       setIsLoading(true); // Start loading
-      const result = await googleOAuth(startOAuthFlow);
+      const result = await startOAuthFlow();
 
-      if (result.code === 'session_exists' || result.code === 'success') {
+      // Now check for createdSessionId
+      if (result.createdSessionId) {
+        // If session exists, we mark success
         setOauthSuccess(true);
       } else {
-        setIsLoading(false); // Stop loading if not successful
+        // If no session, OAuth was canceled or failed
+        setIsLoading(false);
       }
     } catch (err) {
       console.error('OAuth error', err);
-      setIsLoading(false); // Stop loading on error
+      setIsLoading(false);
     }
   }, [startOAuthFlow]);
 
@@ -46,27 +59,20 @@ const OAuth: React.FC = () => {
 
       try {
         // Send user data to the backend
-        const apiResponse = await fetchAPI('/(api)/user', {
+        const apiResponse = await fetchAPI('https://hippoai.me/(api)/user', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            name,
-            email,
-            clerkId,
-          }),
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, clerkId }),
         });
 
-        // Handle the API response
         const { data } = apiResponse;
         console.log('User data from API:', data);
 
-        setIsLoading(false); // Stop loading
+        setIsLoading(false);
         router.push('/(root)/(tabs)/home');
       } catch (error) {
         console.error('API error:', error);
-        setIsLoading(false); // Stop loading on error
+        setIsLoading(false);
       }
     };
 
@@ -77,7 +83,7 @@ const OAuth: React.FC = () => {
 
   return (
     <View>
-      {/* Display the loading spinner when isLoading is true */}
+      {/* Loading spinner */}
       <ReactNativeModal
         isVisible={isLoading}
         backdropOpacity={0.5}
@@ -94,6 +100,7 @@ const OAuth: React.FC = () => {
         <Text className="text-lg">Or</Text>
         <View className="flex-1 h-[1px] bg-general-100" />
       </View>
+
       <CustomButton
         title="Continue With Google"
         className="mt-5 w-full shadow-none"

@@ -9,6 +9,7 @@ import { useSignUp } from "@clerk/clerk-expo";
 import ReactNativeModal from "react-native-modal";
 import { fetchAPI } from "@/lib/fetch";
 
+
 const SignUp = () => {
   const { isLoaded, signUp, setActive } = useSignUp();
   const router = useRouter();
@@ -27,22 +28,32 @@ const SignUp = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const onSignUpPress = async () => {
-    if (!isLoaded) return;
+
+    if (!isLoaded) {
+      console.warn("Clerk SignUp object is not loaded yet.");
+      return;
+    }
 
     setIsLoading(true);
     try {
+      // Attempt to create the user in Clerk
       await signUp.create({
         emailAddress: form.email,
         password: form.password,
       });
 
+      // Prepare the email code verification
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
 
+      // If all went well, switch to the code verification modal
       setVerification({
         ...verification,
         state: "pending",
       });
     } catch (err: any) {
+      // 3) Log the entire error object:
+      console.error("SignUp Error =>", err);
+
       const errorMessage = err.errors?.[0]?.longMessage || "Sign up failed.";
       setVerification({
         ...verification,
@@ -76,10 +87,7 @@ const SignUp = () => {
           }),
         });
 
-        const { data } = apiResponse; // ✅ Directly use the parsed JSON
-
-        // If you need to use userId or other data, extract them here
-        // const userId = data.id;
+        const { data } = apiResponse;
 
         await setActive({ session: completeSignUp.createdSessionId });
         setVerification({ state: "default", error: "", code: "" });
@@ -92,6 +100,7 @@ const SignUp = () => {
         });
       }
     } catch (err: unknown) {
+      console.error("Verification Error =>", err);
       const errorMessage = err instanceof Error ? err.message : "Verification failed.";
       setVerification({
         ...verification,
@@ -162,7 +171,7 @@ const SignUp = () => {
             className="mt-6"
           />
 
-          <OAuth />
+          {/* <OAuth /> */}
 
           <Link
             href="/sign-in"
